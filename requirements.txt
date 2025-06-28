@@ -3,9 +3,8 @@ Pillow
 fpdf2
 docx2pdf
 gunicorn
-# المكتبات التالية لم تعد مطلوبة مباشرة لتحويل Word مع docx2pdf
-# python-docx
-# reportlab
-# arabic-reshaper
-# python-bidi
-# yt-dlp (اذا لم تكن تستخدمها في وظائف أخرى غير موجودة في الكود الحالي)
+python-docx
+reportlab
+arabic-reshaper
+python-bidi
+yt-dlp
