@@ -3,79 +3,328 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>تحويل صور إلى PDF</title>
+    <title>Qaes Aljazi - أداة تحويل الملفات</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --dark-bg: #110517;        /* خلفية سوداء بنفسجية داكنة جداً */
+            --card-bg: #1e092b;        /* خلفية البطاقات بنفسجية داكنة */
+            --primary-purple: #8a2be2; /* بنفسجي قوي ومميز (Blue Violet) */
+            --secondary-purple: #bb86fc; /* بنفسجي فاتح للمسات */
+            --accent-pink: #ff69b4;     /* زهري فاتح للمسات الإبراز */
+            --text-light: #f0f0f0;     /* نص فاتح جداً */
+            --text-muted: #b0b0b0;     /* نص خافت رمادي */
+            --border-purple: #4a1961;  /* لون حدود بنفسجي غامق */
+            --header-bg: #09020d;      /* خلفية الشريط العلوي أغمق جداً */
+        }
+
         body {
-            background-color: #f8f9fa;
-            direction: rtl; /* اتجاه النص من اليمين لليسار */
-            text-align: right; /* محاذاة النص لليمين */
+            font-family: 'Cairo', sans-serif;
+            background: linear-gradient(135deg, var(--dark-bg) 0%, #050108 100%); /* تدرج خلفية داكن */
+            color: var(--text-light);
+            direction: rtl;
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden; /* لمنع شريط التمرير الأفقي */
         }
+
+        .navbar {
+            background-color: var(--header-bg);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.6); /* ظل أثقل للشريط */
+            padding: 1.2rem 0; /* ارتفاع أكبر للشريط */
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        .navbar-brand {
+            font-family: 'Poppins', sans-serif;
+            color: var(--secondary-purple) !important;
+            font-weight: 700;
+            font-size: 2.2rem; /* حجم أكبر للعنوان */
+            text-shadow: 0 0 15px rgba(187, 134, 252, 0.7); /* ظل نص متوهج */
+            transition: all 0.3s ease;
+        }
+        .navbar-brand:hover {
+            color: var(--primary-purple) !important;
+            transform: scale(1.03);
+            text-shadow: 0 0 20px rgba(138, 43, 226, 0.9);
+        }
+
+        /* Animations */
+        @keyframes fadeInScale {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes slideInUp {
+            from { opacity: 0; transform: translateY(50px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulseGlow {
+            0% { box-shadow: 0 0 10px var(--primary-purple); }
+            50% { box-shadow: 0 0 25px var(--accent-pink), 0 0 35px var(--primary-purple); }
+            100% { box-shadow: 0 0 10px var(--primary-purple); }
+        }
+
         .container {
-            max-width: 600px;
-            margin-top: 50px;
-            background-color: #ffffff;
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            flex: 1;
+            max-width: 900px; /* حجم أقصى مناسب */
+            margin-top: 60px; /* مسافة من الشريط العلوي */
+            margin-bottom: 40px;
+            padding: 40px; /* مسافة داخلية أكبر */
+            background-color: var(--card-bg);
+            border-radius: 20px; /* زوايا دائرية أكثر */
+            box-shadow: 0 15px 40px rgba(0,0,0,0.7); /* ظل أعمق */
+            border: 1px solid var(--border-purple); /* حدود بنفسجية خفيفة */
+            animation: fadeInScale 1s ease-out forwards;
         }
+
+        .main-heading {
+            font-family: 'Poppins', sans-serif;
+            color: var(--secondary-purple);
+            text-align: center;
+            margin-bottom: 50px; /* مسافة أكبر */
+            font-weight: 700;
+            font-size: 2.8rem; /* حجم أكبر جداً */
+            text-shadow: 0 0 20px rgba(187, 134, 252, 0.8); /* ظل نص متوهج */
+            position: relative;
+            padding-bottom: 20px;
+            animation: slideInUp 1.2s ease-out forwards;
+        }
+        .main-heading::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 120px; /* خط أطول وأسمك */
+            height: 4px;
+            background-color: var(--primary-purple);
+            border-radius: 5px;
+        }
+
+        .conversion-section {
+            background: linear-gradient(45deg, #2a0b3f, #3d105a); /* تدرج خلفية للبطاقات */
+            padding: 40px; /* مسافة داخلية أكبر */
+            border-radius: 15px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.5); /* ظل عميق */
+            margin-bottom: 40px;
+            border: 1px solid rgba(138, 43, 226, 0.4);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            animation: slideInUp 1.5s ease-out forwards;
+        }
+        .conversion-section:hover {
+            transform: translateY(-10px); /* رفع أكبر عند التحويم */
+            box-shadow: 0 18px 40px rgba(0,0,0,0.8); /* ظل أعمق عند التحويم */
+            animation: pulseGlow 2s infinite; /* توهج متقطع عند التحويم */
+        }
+        .conversion-section:last-of-type {
+            margin-bottom: 0;
+        }
+        .conversion-section h3 {
+            font-family: 'Poppins', sans-serif;
+            color: var(--accent-pink); /* لون زهري للعناوين الفرعية */
+            margin-bottom: 30px;
+            font-weight: 700;
+            text-align: center;
+            font-size: 2rem; /* حجم أكبر */
+            text-shadow: 0 0 10px rgba(255, 105, 180, 0.5);
+        }
+        .conversion-section h3 i {
+            margin-left: 12px;
+            color: var(--secondary-purple);
+        }
+
         .form-group label {
-            font-weight: bold;
+            font-weight: 600;
+            color: var(--text-light);
+            margin-bottom: 12px;
+            display: block;
+            font-size: 1.1rem;
         }
+        .form-control-file, .form-control {
+            background-color: #351a4a; /* خلفية أغمق لحقول الإدخال */
+            color: var(--text-light);
+            border: 1px solid var(--primary-purple); /* حدود بنفسجية */
+            border-radius: 8px; /* زوايا مدورة أكثر */
+            padding: 15px 20px; /* مسافة داخلية أكبر */
+            transition: all 0.3s ease;
+        }
+        .form-control-file:focus, .form-control:focus {
+            background-color: #4a2566;
+            border-color: var(--accent-pink); /* لون زهري عند التركيز */
+            box-shadow: 0 0 0 0.3rem rgba(255, 105, 180, 0.3); /* ظل متوهج عند التركيز */
+        }
+        .form-text.text-muted {
+            color: var(--text-muted) !important; /* لضمان ظهور اللون الخافت */
+            font-size: 0.95rem;
+            margin-top: 8px;
+        }
+
         .btn-primary {
-            background-color: #007bff;
-            border-color: #007bff;
+            background: linear-gradient(45deg, var(--primary-purple), var(--accent-pink)); /* تدرج زر التحويل */
+            border: none;
+            color: #fff;
+            font-weight: bold;
+            padding: 18px 35px; /* زر أكبر */
+            border-radius: 10px;
+            transition: all 0.4s ease;
+            box-shadow: 0 8px 25px rgba(138, 43, 226, 0.5); /* ظل عميق للزر */
+            font-size: 1.2rem;
+            position: relative;
+            overflow: hidden;
+            z-index: 1;
+        }
+        .btn-primary::before { /* تأثير الوميض اللامع */
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: all 0.6s ease;
+            z-index: -1;
+        }
+        .btn-primary:hover::before {
+            left: 100%;
         }
         .btn-primary:hover {
-            background-color: #0056b3;
-            border-color: #0056b3;
+            transform: translateY(-7px) scale(1.05); /* رفع وتكبير أكبر عند التحويم */
+            box-shadow: 0 12px 30px rgba(138, 43, 226, 0.7);
         }
-        .alert {
-            margin-top: 20px;
+        .btn-primary:active {
+            transform: translateY(0);
+            box-shadow: 0 6px 20px rgba(138, 43, 226, 0.4);
         }
+        .btn-primary:disabled {
+            background: #5c3a7a; /* لون مختلف للزر المعطل */
+            border-color: #5c3a7a;
+            box-shadow: none;
+            cursor: not-allowed;
+            color: #b0b0b0;
+        }
+
         .footer {
-            margin-top: 30px;
+            margin-top: auto;
+            padding: 30px;
             text-align: center;
-            color: #6c757d;
+            color: var(--text-muted);
+            background-color: var(--header-bg);
+            border-top: 1px solid var(--border-purple);
+            font-size: 1rem;
+            animation: slideInUp 1.8s ease-out forwards;
         }
-        .header-links a {
-            margin-left: 15px; /* مسافة بين الروابط */
-            color: #007bff;
-            text-decoration: none;
+        .footer p {
+            margin-bottom: 5px;
         }
-        .header-links a:hover {
-            text-decoration: underline;
+        .hr-divider {
+            border-top: 2px dashed var(--border-purple); /* خط فاصل dashed */
+            margin: 60px 0; /* مسافة أكبر */
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .navbar-brand {
+                font-size: 1.8rem;
+            }
+            .main-heading {
+                font-size: 2.2rem;
+                margin-bottom: 40px;
+            }
+            .conversion-section {
+                padding: 30px;
+                margin-bottom: 30px;
+            }
+            .conversion-section h3 {
+                font-size: 1.8rem;
+            }
+            .container {
+                margin-top: 40px;
+                margin-bottom: 30px;
+                padding: 25px;
+            }
+            .btn-primary {
+                padding: 15px 25px;
+                font-size: 1.1rem;
+            }
+            .form-control-file, .form-control {
+                padding: 12px 15px;
+            }
+        }
+        @media (max-width: 576px) {
+            .navbar-brand {
+                font-size: 1.5rem;
+            }
+            .main-heading {
+                font-size: 1.8rem;
+                margin-bottom: 30px;
+            }
+            .conversion-section {
+                padding: 20px;
+                margin-bottom: 20px;
+            }
+            .conversion-section h3 {
+                font-size: 1.5rem;
+            }
+            .container {
+                margin-top: 20px;
+                margin-bottom: 20px;
+                padding: 15px;
+            }
+            .btn-primary {
+                padding: 12px 20px;
+                font-size: 1rem;
+            }
+            .form-group label {
+                font-size: 1rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header-links text-left mb-4">
-            <a href="/">تنزيل فيديو</a>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand mx-auto" href="/">Qaes Aljazi - أداة تحويل الملفات</a>
         </div>
-        <h2 class="mb-4 text-center">تحويل صور إلى PDF</h2>
+    </nav>
 
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
+    <div class="container">
+        <h2 class="main-heading">مرحباً بك في أداة تحويل الملفات</h2>
 
-        <form action="/images_to_pdf" method="post" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="images">اختر الصور (PNG, JPG, JPEG, GIF, BMP, TIFF):</label>
-                <input type="file" class="form-control-file" id="images" name="images" accept="image/*" multiple required>
-                <small class="form-text text-muted">يمكنك اختيار أكثر من صورة بالضغط على Ctrl أو Shift.</small>
-            </div>
-            <button type="submit" class="btn btn-primary btn-block">تحويل إلى PDF</button>
-        </form>
+        <div class="conversion-section">
+            <h3>تحويل الصور إلى PDF <i class="fas fa-images"></i></h3>
+            <form action="/convert_images_to_pdf" method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="images">اختر الصور (PNG, JPG, JPEG, GIF, BMP, TIFF):</label>
+                    <input type="file" class="form-control-file" id="images" name="images" accept="image/*" multiple required>
+                    <small class="form-text text-muted">يمكنك اختيار أكثر من صورة لتحويلها إلى ملف PDF واحد.</small>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">تحويل الصور إلى PDF</button>
+            </form>
+        </div>
+
+        <div class="hr-divider"></div> <div class="conversion-section">
+            <h3>تحويل ملفات Word إلى PDF <i class="fas fa-file-word"></i></h3>
+            <form action="/convert_word_to_pdf" method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="word_file">اختر ملف Word (DOCX):</label>
+                    <input type="file" class="form-control-file" id="word_file" name="word_file" accept=".doc,.docx" disabled>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block" disabled>تحويل ملف Word إلى PDF</button>
+            </form>
+        </div>
+
     </div>
 
-    <div class="footer">
-        <p>&copy; 2025 قيس الجازي. جميع الحقوق محفوظة.</p>
-    </div>
+    <footer class="footer">
+        <p>&copy; 2025 Qaes Aljazi. جميع الحقوق محفوظة.</p>
+        <p>هذا الموقع من تصميم قيس طلال الجازي.</p>
+    </footer>
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
