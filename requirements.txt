@@ -1,9 +1,11 @@
 Flask
-python-docx
-reportlab
-arabic-reshaper
-python-bidi
-gunicorn
 Pillow
 fpdf2
-yt-dlp
+docx2pdf
+gunicorn
+# المكتبات التالية لم تعد مطلوبة مباشرة لتحويل Word مع docx2pdf
+# python-docx
+# reportlab
+# arabic-reshaper
+# python-bidi
+# yt-dlp (اذا لم تكن تستخدمها في وظائف أخرى غير موجودة في الكود الحالي)
