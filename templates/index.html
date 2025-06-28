@@ -3,87 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Qaes jazi pdf</title> <style>
+    <title>QAES ALJAZI PDF</title> <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #1a1a1a; /* لون الخلفية: أسود داكن */
-            color: #e0e0e0; /* لون النص: رمادي فاتح */
+            font-family: 'Cairo', Arial, sans-serif; /* استخدام خط عربي حديث */
+            margin: 0;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            margin: 0;
+            background: linear-gradient(to right, #4b0082, #8a2be2); /* تدرج لوني بنفسجي غامق */
+            color: #e0e0e0; /* لون النص الافتراضي */
+            overflow-x: hidden; /* منع شريط التمرير الأفقي */
         }
         .container {
-            background-color: #2a2a2a; /* لون خلفية الكونتينر: أسود أفتح قليلاً */
-            padding: 30px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            background-color: rgba(42, 42, 42, 0.9); /* خلفية الكونتينر شفافة قليلاً */
+            padding: 40px;
+            border-radius: 15px; /* حواف دائرية أكثر */
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5); /* ظلال أقوى */
             text-align: center;
-            max-width: 500px;
+            max-width: 550px;
             width: 90%;
+            border: 1px solid rgba(138, 43, 226, 0.5); /* إطار بنفسجي خفيف */
+            position: relative;
+            z-index: 1;
         }
         h1 {
-            color: #8a2be2; /* لون العنوان: بنفسجي زاهي */
-            margin-bottom: 20px;
+            color: #e0e0e0; /* العنوان باللون الفاتح */
+            margin-bottom: 25px;
+            font-size: 2.5em; /* حجم خط أكبر */
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3); /* ظل للنص */
+        }
+        h1 strong {
+            color: #8a2be2; /* "PDF" باللون البنفسجي الزاهي */
         }
         form {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 20px; /* مسافة أكبر بين العناصر */
             align-items: center;
         }
+        label {
+            font-size: 1.1em;
+            color: #e0e0e0;
+        }
         input[type="file"] {
-            padding: 10px;
-            border: 1px solid #444; /* لون حدود الملف: رمادي داكن */
-            border-radius: 4px;
+            padding: 12px;
+            border: 2px solid #6a1aae; /* إطار أسمك بلون بنفسجي */
+            border-radius: 8px;
             width: 100%;
             box-sizing: border-box;
-            background-color: #333; /* لون خلفية حقل الملف: رمادي أغمق */
-            color: #e0e0e0; /* لون نص حقل الملف */
+            background-color: #333;
+            color: #e0e0e0;
+            cursor: pointer;
+            transition: border-color 0.3s ease;
         }
-        button {
-            background-color: #8a2be2; /* لون زر التحويل: بنفسجي */
+        input[type="file"]:hover {
+            border-color: #8a2be2; /* يتغير لون الإطار عند التحويم */
+        }
+        input[type="file"]::-webkit-file-upload-button {
+            background-color: #8a2be2; /* لون الزر داخل حقل الملف */
             color: white;
             padding: 10px 20px;
             border: none;
             border-radius: 5px;
             cursor: pointer;
-            font-size: 16px;
+            margin-right: 15px;
             transition: background-color 0.3s ease;
         }
+        input[type="file"]::-webkit-file-upload-button:hover {
+            background-color: #6a1aae;
+        }
+        button {
+            background: linear-gradient(to right, #8a2be2, #a052ee); /* تدرج لوني للزر */
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1.2em;
+            font-weight: bold;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
         button:hover {
-            background-color: #6a1aae; /* لون الزر عند التحويم: بنفسجي أغمق */
+            transform: translateY(-3px); /* حركة خفيفة عند التحويم */
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.4);
         }
         .flash-message {
-            margin-top: 15px;
-            padding: 10px;
-            border-radius: 5px;
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 8px;
             font-weight: bold;
-            color: #333;
+            font-size: 1em;
         }
         .flash-message.error {
-            background-color: #ffcccc; /* خلفية رسالة الخطأ: أحمر فاتح */
+            background-color: #ffcccc;
             border: 1px solid #cc0000;
             color: #cc0000;
         }
         .flash-message.success {
-            background-color: #ccffcc; /* خلفية رسالة النجاح: أخضر فاتح */
+            background-color: #ccffcc;
             border: 1px solid #009900;
             color: #009900;
         }
         .footer {
-            margin-top: 30px;
-            font-size: 14px;
-            color: #a0a0a0; /* لون نص الفوتر: رمادي متوسط */
+            margin-top: 40px;
+            font-size: 1em;
+            color: #b0b0b0;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+        /* خلفية متحركة (اختياري، ممكن تكون تقيلة على الأداء) */
+        .background-animation {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: 0;
+        }
+        .background-animation span {
+            position: absolute;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 50%;
+            animation: moveBubbles 15s infinite ease-in-out alternate;
+        }
+        .background-animation span:nth-child(1) { width: 60px; height: 60px; left: 10%; animation-delay: 0s; }
+        .background-animation span:nth-child(2) { width: 80px; height: 80px; left: 30%; animation-delay: 2s; }
+        .background-animation span:nth-child(3) { width: 40px; height: 40px; left: 50%; animation-delay: 4s; }
+        .background-animation span:nth-child(4) { width: 70px; height: 70px; left: 70%; animation-delay: 6s; }
+        .background-animation span:nth-child(5) { width: 50px; height: 50px; left: 90%; animation-delay: 8s; }
+        .background-animation span:nth-child(6) { width: 90px; height: 90px; left: 20%; animation-delay: 10s; }
+        .background-animation span:nth-child(7) { width: 45px; height: 45px; left: 60%; animation-delay: 12s; }
+
+        @keyframes moveBubbles {
+            0% { transform: translateY(0) scale(1); opacity: 0.8; }
+            100% { transform: translateY(-100vh) scale(1.2); opacity: 0; }
         }
     </style>
 </head>
 <body>
+    <div class="background-animation">
+        <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+    </div>
     <div class="container">
-        <h1>محول Word إلى PDF</h1>
-        <form action="/convert" method="post" enctype="multipart/form-data">
+        <h1>QAES ALJAZI <strong>PDF</strong></h1> <form action="/convert" method="post" enctype="multipart/form-data">
             <label for="word_file">اختر ملف Word (.docx):</label>
             <input type="file" id="word_file" name="word_file" accept=".docx" required>
             <button type="submit">تحويل إلى PDF</button>
@@ -97,6 +163,7 @@
         {% endwith %}
     </div>
     <div class="footer">
-        <p>هذا الموقع من تطوير قيس طلال الجازي</p> </div>
+        <p>هذا الموقع من تطوير قيس طلال الجازي</p>
+    </div>
 </body>
 </html>
