@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, send_file, redirect, url_for
 import os
 import io
 from PIL import Image # لاستيراد مكتبة الصور
-from fpdf import FPDF # لاستيراد مكتبة PDF (لتحويل الصور)
+from fpdf import FPDF # لاستيراد مكتبة PDF (لتحويل الصور) - تأكد إنها fpdf2 إذا مثبتة
 
 # استيرادات جديدة لميزة تحويل Word إلى PDF
 from docx import Document
@@ -106,7 +106,8 @@ def convert_images_to_pdf():
             
             pdf.image(img_io, x=x, y=y, w=new_width, h=new_height)
 
-        pdf_output = pdf.output(dest='S').encode('latin-1')
+        # التعديل هنا: إزالة .encode('latin-1')
+        pdf_output = pdf.output(dest='S')
         pdf_stream = io.BytesIO(pdf_output)
 
         return send_file(pdf_stream, as_attachment=True, download_name='converted_images.pdf', mimetype='application/pdf')
@@ -115,7 +116,7 @@ def convert_images_to_pdf():
         app.logger.error(f"Error during PDF conversion: {e}", exc_info=True)
         return f"حدث خطأ أثناء تحويل الصور إلى PDF: {e}", 500
 
-# مسار تحويل ملفات Word إلى PDF (تم تفعيله)
+# مسار تحويل ملفات Word إلى PDF
 @app.route('/convert_word_to_pdf', methods=['POST'])
 def convert_word_to_pdf():
     if 'word_file' not in request.files:
