@@ -1,4 +1,6 @@
 Flask
 python-docx
 reportlab
+arabic-reshaper
+python-bidi
 gunicorn
