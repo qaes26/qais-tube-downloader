@@ -4,3 +4,4 @@ reportlab
 arabic-reshaper
 python-bidi
 gunicorn
+Pillow
