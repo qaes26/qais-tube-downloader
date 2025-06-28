@@ -11,34 +11,47 @@ import tempfile # لاستخدام ملفات مؤقتة
 app = Flask(__name__)
 
 # ###############################################################
-# جزء خاص بالتعامل مع اللغة العربية في PDF (لم يعد ضرورياً لتحويل Word)
+# جزء خاص بالتعامل مع اللغة العربية في PDF
 # ###############################################################
-# ملاحظة: هذا الجزء لم يعد مطلوباً لتحويل Word إلى PDF إذا استخدمت docx2pdf،
-# لأن LibreOffice سيتولى عملية التصيير (Rendering) بما في ذلك الخطوط العربية.
-# لكنه ما زال ضرورياً لوظائف أخرى قد تضيفها مستقبلاً أو إذا كانت fpdf تستخدمه.
-# لأجل هذا التطبيق، سأبقيه معلقاً جزئياً لتوضيح أنه لم يعد يستخدم مباشرة لتحويل Word.
-
-# تأكد أن لديك ملف خط عربي يدعم Unicode و Arabic shaping
-# سنبقي تسجيل الخط هنا فقط في حال كانت FPDF تستخدمه في وظائف أخرى
+# تم نقل استيراد pdfmetrics و TTFont إلى داخل كتلة try-except
+# للتأكد من أنها معرفة عند محاولة استخدامها.
 try:
     from reportlab.pdfbase import pdfmetrics
     from reportlab.pdfbase.ttfonts import TTFont
+    
     # سيتم البحث عن الخط في نفس المجلد الذي يعمل منه التطبيق
     pdfmetrics.registerFont(TTFont('ArabicFont', 'arial.ttf'))
     print("Arabic font 'arial.ttf' loaded successfully for general PDF use.")
+except ImportError:
+    print("Warning: reportlab not fully imported. Arabic font registration for reportlab skipped.")
+    # يمكن هنا تسجيل خط بديل لـ FPDF إذا كنت تستخدمها بشكل منفصل للنصوص العربية
+    # ولكن وظيفة تحويل الصور لا تحتاج لخط عربي للنصوص، فقط للصور.
+    # وظيفة تحويل الوورد تستخدم docx2pdf والتي تتولى الخطوط.
 except Exception as e:
     print(f"Warning: Could not load Arabic font 'arial.ttf' for general PDF use. Error: {e}")
     # إذا لم يتم تحميل Arial، يمكن استخدام خط بديل قد يكون متوفرًا
     try:
+        from reportlab.pdfbase import pdfmetrics
+        from reportlab.pdfbase.ttfonts import TTFont
         pdfmetrics.registerFont(TTFont('ArabicFont', 'FreeSans.ttf'))
         print("Using 'FreeSans.ttf' as fallback font for general PDF use. Please consider adding 'arial.ttf' to your project for better Arabic support.")
+    except ImportError:
+        print("Warning: reportlab or FreeSans.ttf not available for fallback font.")
     except Exception as fe:
         print(f"Error loading FreeSans fallback font: {fe}")
-        pdfmetrics.registerFont(TTFont('ArabicFont', 'Helvetica'))
-        print("Using 'Helvetica' as a last resort for general PDF use. Arabic text might not display correctly.")
+        # إذا فشل كل شيء، يمكنك استخدام خط ReportLab الافتراضي (قد لا يدعم العربية)
+        try:
+            from reportlab.pdfbase import pdfmetrics
+            from reportlab.pdfbase.ttfonts import TTFont
+            pdfmetrics.registerFont(TTFont('ArabicFont', 'Helvetica'))
+            print("Using 'Helvetica' as a last resort for general PDF use. Arabic text might not display correctly.")
+        except ImportError:
+            print("Warning: reportlab not available, cannot register Helvetica font.")
+        except Exception as he:
+            print(f"Error registering Helvetica: {he}")
+
 
 # هذه الدالة لم تعد تستخدم مباشرة في تحويل Word إذا استخدمت docx2pdf
-# لكنها قد تكون مفيدة لوظائف أخرى تستخدم reportlab
 # def get_arabic_text_for_pdf(text):
 #     """يعالج النص العربي ليعرض بشكل صحيح في PDF."""
 #     import arabic_reshaper
@@ -153,6 +166,7 @@ def convert_word_to_pdf():
 
     except Exception as e:
         app.logger.error(f"Error during Word to PDF conversion with docx2pdf: {e}", exc_info=True)
+        # رسالة خطأ أكثر تفصيلاً للمستخدم
         return f"حدث خطأ أثناء تحويل ملف Word إلى PDF: {e}. يرجى التأكد من أن الخادم يدعم تحويل DOCX (يتطلب LibreOffice/MS Word).", 500
 
 if __name__ == '__main__':
