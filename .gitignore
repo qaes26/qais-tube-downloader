@@ -1,0 +1,30 @@
+# Ignore temporary directories created by yt-dlp or system
+tmp*/
+_temp*/
+.temp*/
+*.tmp_dir*
+temp_dir*
+
+# Ignore common temporary files
+*.tmp
+*.temp
+*.part
+*.ytdl
+*.webp # yt-dlp might download some formats as webp
+
+# Ignore common video/audio formats that might be in temp
+*.mp4
+*.mkv
+*.webm
+*.mp3
+*.m4a
+*.aac
+
+# Ignore generated files that should not be committed
+*.pyc
+__pycache__/
+.ipynb_checkpoints/
+
+# Ignore virtual environment folder
+venv/
+.venv/

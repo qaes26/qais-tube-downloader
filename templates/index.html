@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>قيس الجازي تيوب - أداة تنزيل فيديوهات يوتيوب</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif; /* استخدام خط عربي جميل */
+            background: #1a1a1a; /* خلفية سوداء داكنة */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            color: #f0f0f0; /* لون نص فاتح ليبرز على الخلفية الداكنة */
+            direction: rtl; /* لجعل النص يبدأ من اليمين ليتناسب مع العربية */
+            text-align: right; /* محاذاة النص لليمين */
+        }
+        .container {
+            background-color: rgba(30, 30, 30, 0.9); /* صندوق داكن شفاف قليلاً */
+            padding: 40px;
+            border-radius: 15px; /* حواف أكثر دائرية */
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5); /* ظل أوضح وأغمق */
+            text-align: center;
+            width: 90%;
+            max-width: 600px; /* زيادة العرض قليلاً */
+            backdrop-filter: blur(5px); /* تأثير ضبابي على الخلفية */
+            -webkit-backdrop-filter: blur(5px); /* دعم متصفحات الويب كيت */
+            border: 1px solid #6a0dad; /* حد بنفسجي خفيف */
+        }
+        h1 {
+            color: #9b59b6; /* لون بنفسجي زاهي */
+            margin-bottom: 25px;
+            font-size: 2.5em; /* حجم أكبر للعنوان */
+            font-weight: 700; /* خط سميك */
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.3); /* ظل خفيف للنص */
+        }
+        p {
+            font-size: 1.1em;
+            color: #ccc; /* لون رمادي فاتح للنص */
+            margin-bottom: 30px;
+        }
+        input[type="text"] {
+            width: calc(100% - 24px); /* تعديل بسيط لحساب البادينج */
+            padding: 12px;
+            margin-bottom: 25px;
+            background-color: #333; /* خلفية حقل الإدخال داكنة */
+            color: #f0f0f0; /* لون نص حقل الإدخال فاتح */
+            border: 2px solid #555; /* حد أسمك قليلاً */
+            border-radius: 8px; /* حواف دائرية أكثر */
+            font-size: 1.1em;
+            outline: none; /* إزالة الخط الأزرق عند التركيز */
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            text-align: right; /* محاذاة النص المدخل لليمين */
+        }
+        input[type="text"]:focus {
+            border-color: #9b59b6; /* لون بنفسجي عند التركيز */
+            box-shadow: 0 0 8px rgba(155, 89, 182, 0.5); /* ظل بنفسجي خفيف */
+        }
+        button {
+            background-color: #8e44ad; /* بنفسجي غامق للزر */
+            color: white;
+            padding: 15px 30px; /* بادينج أكبر للزر */
+            border: none;
+            border-radius: 8px; /* حواف دائرية أكثر */
+            cursor: pointer;
+            font-size: 1.2em; /* حجم خط أكبر للزر */
+            font-weight: 700;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            letter-spacing: 0.5px; /* تباعد بسيط بين الحروف */
+        }
+        button:hover {
+            background-color: #6a0dad; /* بنفسجي أغمق عند التحويم */
+            transform: translateY(-2px); /* تأثير رفع بسيط للزر */
+        }
+        button:active {
+            transform: translateY(0); /* تأثير الضغط على الزر */
+        }
+        /* لتحديد أن رابط الخط سيتم تحميله في أقرب وقت ممكن */
+        link[rel="stylesheet"] {
+            font-display: swap;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>قيس الجازي تيوب</h1>
+        <p>قم بتنزيل فيديوهاتك المفضلة من يوتيوب بسهولة وجودة عالية.</p>
+        
+        <form action="/download" method="post">
+            <input type="text" id="url" name="url" placeholder="الصق رابط فيديو يوتيوب هنا..." required>
+            <button type="submit">تنزيل الفيديو</button>
+        </form>
+    </div>
+</body>
+</html>
