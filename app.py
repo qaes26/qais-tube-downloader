@@ -1,17 +1,15 @@
 from flask import Flask, render_template, request, send_file, redirect, url_for
 import os
 import io
-from PIL import Image # لاستيراد مكتبة الصور (موجودة لميزة الصور)
-from fpdf import FPDF # لاستيراد مكتبة PDF (موجودة لميزة الصور)
+from PIL import Image # لاستيراد مكتبة الصور
+from fpdf import FPDF # لاستيراد مكتبة PDF (لتحويل الصور)
 
 # استيرادات جديدة لميزة تحويل Word إلى PDF
 from docx import Document
-from reportlab.pdfgen import canvas
-from reportlab.lib.pagesizes import letter
-from reportlab.lib.utils import ImageReader
+from reportlab.lib.pagesizes import letter, A4
 from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
-from reportlab.lib.enums import TA_RIGHT, TA_LEFT
+from reportlab.lib.enums import TA_RIGHT, TA_LEFT, TA_CENTER
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 import arabic_reshaper
@@ -25,14 +23,26 @@ app = Flask(__name__)
 # تأكد أن لديك ملف خط عربي يدعم Unicode و Arabic shaping
 # مثال: Arial, Traditional Arabic, Amiri, Noto Naskh Arabic
 # يجب وضع هذا الخط في نفس مجلد ملف app.py أو في مجلد يمكن الوصول إليه
-# مثال: الخط المستخدم هنا هو "arial.ttf". تأكد من وجوده.
+# سنستخدم 'arial.ttf' هنا. تأكد من وجوده.
 try:
+    # سيتم البحث عن الخط في نفس المجلد الذي يعمل منه التطبيق
     pdfmetrics.registerFont(TTFont('ArabicFont', 'arial.ttf'))
+    # يمكنك تسجيل خطوط أخرى إذا لزم الأمر
+    # pdfmetrics.registerFont(TTFont('ArabicFontBold', 'arialbd.ttf'))
+    print("Arabic font 'arial.ttf' loaded successfully.")
 except Exception as e:
-    print(f"Warning: Could not load Arabic font 'arial.ttf'. Please ensure it's in the same directory as app.py. Error: {e}")
-    # يمكن استخدام خط افتراضي إذا لم يتم تحميل الخط المخصص
-    pdfmetrics.registerFont(TTFont('ArabicFont', 'FreeSans.ttf')) # FreeSans هو خط قد يكون موجودًا بشكل افتراضي في بعض الأنظمة
-    print("Using FreeSans as fallback font.")
+    print(f"Warning: Could not load Arabic font 'arial.ttf'. Please ensure it's in the same directory as app.py or provide a full path. Error: {e}")
+    # إذا لم يتم تحميل Arial، يمكن استخدام خط بديل قد يكون متوفرًا (قد لا يدعم العربية بشكل مثالي)
+    # هذا الخط قد لا يكون موجودًا على Render.com، لذا يفضل تضمين 'arial.ttf' مع ملفات المشروع.
+    try:
+        pdfmetrics.registerFont(TTFont('ArabicFont', 'FreeSans.ttf'))
+        print("Using 'FreeSans.ttf' as fallback font. Please consider adding 'arial.ttf' to your project for better Arabic support.")
+    except Exception as fe:
+        print(f"Error loading FreeSans fallback font: {fe}")
+        # إذا فشل كل شيء، يمكنك استخدام خط ReportLab الافتراضي (قد لا يدعم العربية)
+        pdfmetrics.registerFont(TTFont('ArabicFont', 'Helvetica'))
+        print("Using 'Helvetica' as a last resort. Arabic text might not display correctly.")
+
 
 def get_arabic_text_for_pdf(text):
     """يعالج النص العربي ليعرض بشكل صحيح في PDF."""
@@ -105,7 +115,7 @@ def convert_images_to_pdf():
         app.logger.error(f"Error during PDF conversion: {e}", exc_info=True)
         return f"حدث خطأ أثناء تحويل الصور إلى PDF: {e}", 500
 
-# مسار تحويل ملفات Word إلى PDF
+# مسار تحويل ملفات Word إلى PDF (تم تفعيله)
 @app.route('/convert_word_to_pdf', methods=['POST'])
 def convert_word_to_pdf():
     if 'word_file' not in request.files:
@@ -124,42 +134,77 @@ def convert_word_to_pdf():
         
         # إنشاء PDF باستخدام ReportLab
         buffer = io.BytesIO()
-        doc = SimpleDocTemplate(buffer, pagesize=letter)
+        
+        # DocTemplate هو الأنسب للوثائق المعقدة
+        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=72)
+        
         styles = getSampleStyleSheet()
 
         # تعريف نمط النص العربي
         # يجب التأكد أن الخط 'ArabicFont' تم تحميله بشكل صحيح في pdfmetrics
-        arabic_style = ParagraphStyle(
-            'Arabic',
+        arabic_style_normal = ParagraphStyle(
+            'ArabicNormal',
             parent=styles['Normal'],
-            fontName='ArabicFont', # استخدم اسم الخط اللي سجلته
+            fontName='ArabicFont',
             fontSize=12,
-            leading=14,
-            alignment=TA_RIGHT, # محاذاة لليمين للنص العربي
+            leading=14, # المسافة بين الأسطر
+            alignment=TA_RIGHT,
             rightIndent=0,
             leftIndent=0,
             spaceBefore=6,
             spaceAfter=6,
-            wordWrap='LTR', # التعامل مع اتجاه النص
+            wordWrap='LTR', # مهم للتعامل مع اتجاه النص المختلط
             allowWidows=1,
             allowOrphans=1,
         )
+        
+        # نمط للعنوان
+        arabic_style_heading1 = ParagraphStyle(
+            'ArabicHeading1',
+            parent=styles['h1'],
+            fontName='ArabicFont',
+            fontSize=18,
+            leading=22,
+            alignment=TA_CENTER,
+            spaceBefore=12,
+            spaceAfter=6,
+            wordWrap='LTR',
+        )
+        
+        # يمكنك إضافة أنماط أخرى حسب الحاجة (مثل Bold, Italic)
 
-        flowables = []
+        flowables = [] # العناصر التي ستضاف إلى الـ PDF
+
         for para in document.paragraphs:
-            text = get_arabic_text_for_pdf(para.text)
-            flowables.append(Paragraph(text, arabic_style))
-            flowables.append(Spacer(1, 0.2 * inch)) # مسافة بين الفقرات (بوصة)
+            text = para.text.strip()
+            if not text:
+                continue # تخطي الفقرات الفارغة
 
-        # إنشاء الـ PDF
+            # تحديد النمط بناءً على محتوى الفقرة (تبسيط)
+            # يمكن تحسين هذا الجزء للتعرف على أنماط Word الفعلية (مثل Heading 1)
+            if para.style.name.startswith('Heading 1'):
+                style_to_use = arabic_style_heading1
+            else:
+                style_to_use = arabic_style_normal
+
+            # معالجة النص العربي قبل إضافته للـ PDF
+            processed_text = get_arabic_text_for_pdf(text)
+            
+            flowables.append(Paragraph(processed_text, style_to_use))
+            # إضافة مسافة بسيطة بين الفقرات
+            # flowables.append(Spacer(1, 0.2 * inch)) # ReportLab يستخدم وحدات قياس مثل inch
+
+        # بناء الـ PDF
         doc.build(flowables)
         buffer.seek(0)
 
+        # إرسال الملف الناتج
         return send_file(buffer, as_attachment=True, download_name='converted_word.pdf', mimetype='application/pdf')
 
     except Exception as e:
         app.logger.error(f"Error during Word to PDF conversion: {e}", exc_info=True)
-        return f"حدث خطأ أثناء تحويل ملف Word إلى PDF: {e}. يرجى المحاولة مرة أخرى أو التأكد من تنسيق الملف.", 500
+        # رسالة خطأ أكثر تفصيلاً للمستخدم
+        return f"حدث خطأ أثناء تحويل ملف Word إلى PDF: {e}. يرجى التأكد من أن الملف بصيغة DOCX أو DOC وأنه لا يحتوي على تنسيقات معقدة جداً.", 500
 
 if __name__ == '__main__':
     # تأكد من أن debug=False عند النشر في بيئة الإنتاج!
