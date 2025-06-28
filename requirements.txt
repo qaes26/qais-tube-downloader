@@ -1,7 +1,6 @@
 Flask
 Pillow
 fpdf2
-docx2pdf
 gunicorn
 python-docx
 reportlab

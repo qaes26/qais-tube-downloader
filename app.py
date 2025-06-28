@@ -2,63 +2,42 @@ from flask import Flask, render_template, request, send_file, redirect, url_for
 import os
 import io
 from PIL import Image
-from fpdf import FPDF # لاستيراد مكتبة PDF (لتحويل الصور) - تأكد إنها fpdf2 إذا مثبتة
+from fpdf import FPDF # تأكد إنها fpdf2 إذا مثبتة
 
-# استيرادات جديدة ومعدلة لميزة تحويل Word إلى PDF
-from docx2pdf import convert
-import tempfile # لاستخدام ملفات مؤقتة
+# استيرادات لميزة تحويل Word إلى PDF باستخدام reportlab
+from docx import Document
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.enums import TA_RIGHT, TA_LEFT, TA_CENTER
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+import arabic_reshaper
+from bidi.algorithm import get_display
 
 app = Flask(__name__)
 
 # ###############################################################
-# جزء خاص بالتعامل مع اللغة العربية في PDF
+# جزء خاص بالتعامل مع اللغة العربية في PDF (لـ reportlab)
 # ###############################################################
-# تم نقل استيراد pdfmetrics و TTFont إلى داخل كتلة try-except
-# للتأكد من أنها معرفة عند محاولة استخدامها.
 try:
-    from reportlab.pdfbase import pdfmetrics
-    from reportlab.pdfbase.ttfonts import TTFont
-    
-    # سيتم البحث عن الخط في نفس المجلد الذي يعمل منه التطبيق
     pdfmetrics.registerFont(TTFont('ArabicFont', 'arial.ttf'))
-    print("Arabic font 'arial.ttf' loaded successfully for general PDF use.")
-except ImportError:
-    print("Warning: reportlab not fully imported. Arabic font registration for reportlab skipped.")
-    # يمكن هنا تسجيل خط بديل لـ FPDF إذا كنت تستخدمها بشكل منفصل للنصوص العربية
-    # ولكن وظيفة تحويل الصور لا تحتاج لخط عربي للنصوص، فقط للصور.
-    # وظيفة تحويل الوورد تستخدم docx2pdf والتي تتولى الخطوط.
+    print("Arabic font 'arial.ttf' loaded successfully.")
 except Exception as e:
-    print(f"Warning: Could not load Arabic font 'arial.ttf' for general PDF use. Error: {e}")
-    # إذا لم يتم تحميل Arial، يمكن استخدام خط بديل قد يكون متوفرًا
+    print(f"Warning: Could not load Arabic font 'arial.ttf'. Please ensure it's in the same directory as app.py or provide a full path. Error: {e}")
     try:
-        from reportlab.pdfbase import pdfmetrics
-        from reportlab.pdfbase.ttfonts import TTFont
         pdfmetrics.registerFont(TTFont('ArabicFont', 'FreeSans.ttf'))
-        print("Using 'FreeSans.ttf' as fallback font for general PDF use. Please consider adding 'arial.ttf' to your project for better Arabic support.")
-    except ImportError:
-        print("Warning: reportlab or FreeSans.ttf not available for fallback font.")
+        print("Using 'FreeSans.ttf' as fallback font. Please consider adding 'arial.ttf' to your project for better Arabic support.")
     except Exception as fe:
         print(f"Error loading FreeSans fallback font: {fe}")
-        # إذا فشل كل شيء، يمكنك استخدام خط ReportLab الافتراضي (قد لا يدعم العربية)
-        try:
-            from reportlab.pdfbase import pdfmetrics
-            from reportlab.pdfbase.ttfonts import TTFont
-            pdfmetrics.registerFont(TTFont('ArabicFont', 'Helvetica'))
-            print("Using 'Helvetica' as a last resort for general PDF use. Arabic text might not display correctly.")
-        except ImportError:
-            print("Warning: reportlab not available, cannot register Helvetica font.")
-        except Exception as he:
-            print(f"Error registering Helvetica: {he}")
+        pdfmetrics.registerFont(TTFont('ArabicFont', 'Helvetica'))
+        print("Using 'Helvetica' as a last resort. Arabic text might not display correctly.")
 
-
-# هذه الدالة لم تعد تستخدم مباشرة في تحويل Word إذا استخدمت docx2pdf
-# def get_arabic_text_for_pdf(text):
-#     """يعالج النص العربي ليعرض بشكل صحيح في PDF."""
-#     import arabic_reshaper
-#     from bidi.algorithm import get_display
-#     reshaped_text = arabic_reshaper.reshape(text)
-#     bidi_text = get_display(reshaped_text)
-#     return bidi_text
+def get_arabic_text_for_pdf(text):
+    """يعالج النص العربي ليعرض بشكل صحيح في PDF."""
+    reshaped_text = arabic_reshaper.reshape(text)
+    bidi_text = get_display(reshaped_text)
+    return bidi_text
 # ###############################################################
 
 # المسار الرئيسي لعرض الصفحة
@@ -124,7 +103,7 @@ def convert_images_to_pdf():
         app.logger.error(f"Error during PDF conversion: {e}", exc_info=True)
         return f"حدث خطأ أثناء تحويل الصور إلى PDF: {e}", 500
 
-# مسار تحويل ملفات Word إلى PDF (تم تفعيله باستخدام docx2pdf)
+# مسار تحويل ملفات Word إلى PDF (باستخدام python-docx و reportlab)
 @app.route('/convert_word_to_pdf', methods=['POST'])
 def convert_word_to_pdf():
     if 'word_file' not in request.files:
@@ -134,41 +113,68 @@ def convert_word_to_pdf():
     if word_file.filename == '':
         return "الرجاء تحديد ملف Word.", 400
     
-    # docx2pdf يدعم .doc و .docx، لكن .doc قد يتطلب تثبيت خاص على بعض الأنظمة
     if not word_file.filename.lower().endswith(('.doc', '.docx')):
         return "الرجاء رفع ملف Word بصيغة DOC أو DOCX.", 400
 
     try:
-        # حفظ الملف المؤقت لـ Word لأن docx2pdf يحتاج مسار ملف
-        with tempfile.NamedTemporaryFile(delete=False, suffix=".docx") as temp_word_file:
-            word_file.save(temp_word_file.name)
-            temp_word_path = temp_word_file.name
+        document = Document(word_file)
+        buffer = io.BytesIO()
         
-        # تحديد مسار ملف PDF الناتج المؤقت
-        temp_pdf_path = temp_word_path.replace(".docx", ".pdf").replace(".doc", ".pdf")
+        doc = SimpleDocTemplate(buffer, pagesize=A4, rightMargin=72, leftMargin=72, topMargin=72, bottomMargin=72)
+        
+        styles = getSampleStyleSheet()
 
-        try:
-            # استخدام docx2pdf للتحويل
-            # هذا السطر هو الأهم والذي يتطلب وجود LibreOffice أو MS Word
-            convert(temp_word_path, temp_pdf_path)
+        arabic_style_normal = ParagraphStyle(
+            'ArabicNormal',
+            parent=styles['Normal'],
+            fontName='ArabicFont',
+            fontSize=12,
+            leading=14,
+            alignment=TA_RIGHT,
+            rightIndent=0,
+            leftIndent=0,
+            spaceBefore=6,
+            spaceAfter=6,
+            wordWrap='LTR',
+            allowWidows=1,
+            allowOrphans=1,
+        )
+        
+        arabic_style_heading1 = ParagraphStyle(
+            'ArabicHeading1',
+            parent=styles['h1'],
+            fontName='ArabicFont',
+            fontSize=18,
+            leading=22,
+            alignment=TA_CENTER,
+            spaceBefore=12,
+            spaceAfter=6,
+            wordWrap='LTR',
+        )
+        
+        flowables = []
 
-            # قراءة ملف PDF الناتج وإرساله
-            with open(temp_pdf_path, 'rb') as f:
-                pdf_output_stream = io.BytesIO(f.read())
-            
-            return send_file(pdf_output_stream, as_attachment=True, download_name='converted_word.pdf', mimetype='application/pdf')
+        for para in document.paragraphs:
+            text = para.text.strip()
+            if not text:
+                continue
 
-        finally:
-            # تنظيف الملفات المؤقتة
-            os.unlink(temp_word_path)
-            if os.path.exists(temp_pdf_path):
-                os.unlink(temp_pdf_path)
+            if para.style.name.startswith('Heading 1'):
+                style_to_use = arabic_style_heading1
+            else:
+                style_to_use = arabic_style_normal
+
+            processed_text = get_arabic_text_for_pdf(text)
+            flowables.append(Paragraph(processed_text, style_to_use))
+
+        doc.build(flowables)
+        buffer.seek(0)
+
+        return send_file(buffer, as_attachment=True, download_name='converted_word.pdf', mimetype='application/pdf')
 
     except Exception as e:
-        app.logger.error(f"Error during Word to PDF conversion with docx2pdf: {e}", exc_info=True)
-        # رسالة خطأ أكثر تفصيلاً للمستخدم
-        return f"حدث خطأ أثناء تحويل ملف Word إلى PDF: {e}. يرجى التأكد من أن الخادم يدعم تحويل DOCX (يتطلب LibreOffice/MS Word).", 500
+        app.logger.error(f"Error during Word to PDF conversion: {e}", exc_info=True)
+        return f"حدث خطأ أثناء تحويل ملف Word إلى PDF: {e}. يرجى التأكد من أن الملف بصيغة DOCX أو DOC وأنه لا يحتوي على تنسيقات معقدة جداً.", 500
 
 if __name__ == '__main__':
-    # تأكد من أن debug=False عند النشر في بيئة الإنتاج!
     app.run(debug=True)
